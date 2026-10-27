@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scanner de Industrialización · CDT CChC</title>
+<meta name="description" content="Autoevaluación del nivel de industrialización de tu empresa. Recibe tu informe al instante.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <div class="eyebrow">Scanner de Industrialización | Pilar Productividad | Compromiso PRO</div>
+    <h1>SCANNER <small>DE</small><br>INDUSTRIALIZACIÓN</h1>
+    <p class="lead" id="lead">Autoevaluación de 10 minutos que mide el nivel de industrialización de tu empresa en cuatro ámbitos.
+      Al terminar verás tus resultados y podrás descargar tu informe en PDF o recibirlo por correo.</p>
+  </div>
+  <span class="flag" aria-hidden="true"></span>
+</header>
+
+<main id="app">
+  <!-- INICIO -->
+  <section id="v-inicio" class="vista">
+    <div class="card intro">
+      <h2>¿Qué evalúa?</h2>
+      <div class="ambitos-grid">
+        <div><img src="img/icon_ce.png" alt=""><b>Conceptualización y estrategia</b><span>Planificación estratégica para integrar la industrialización.</span></div>
+        <div><img src="img/icon_ha.png" alt=""><b>Habilitantes</b><span>BIM, Lean y Diseño para Fabricación y Montaje (DfMA).</span></div>
+        <div><img src="img/icon_ro.png" alt=""><b>Roles</b><span>Responsabilidades y competencias de los equipos.</span></div>
+        <div><img src="img/icon_in.png" alt=""><b>Integración temprana</b><span>Colaboración entre equipos, socios y proveedores.</span></div>
+      </div>
+      <p class="muted">Son 15 preguntas. Elige la alternativa que mejor describe a tu empresa hoy, no la que les gustaría tener. Tus respuestas individuales son confidenciales; solo se usan de forma agregada para comparar.</p>
+      <button class="btn" id="comenzar">Comenzar</button>
+    </div>
+  </section>
+
+  <!-- FORMULARIO -->
+  <section id="v-form" class="vista" hidden>
+    <div class="progreso"><div class="barra"><i id="barra"></i></div><span id="paso-txt"></span></div>
+    <form id="form" novalidate>
+      <div id="pasos"></div>
+      <input type="text" name="web" id="web" tabindex="-1" autocomplete="off" class="trampa" aria-hidden="true">
+      <div class="nav">
+        <button type="button" class="btn sec" id="atras">Atrás</button>
+        <button type="button" class="btn" id="siguiente">Siguiente</button>
+      </div>
+      <p class="error" id="error" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section id="v-res" class="vista" hidden>
+    <div class="card res-head">
+      <div class="res-emp" id="r-empresa"></div>
+      <div class="res-sub" id="r-sub"></div>
+      <div class="res-grid">
+        <div class="gauge-box">
+          <svg viewBox="0 0 200 140" class="gauge" aria-hidden="true">
+            <path d="M25 120 A85 85 0 1 1 175 120" fill="none" stroke="#E8EEF6" stroke-width="16" stroke-linecap="round"/>
+            <path id="g-arc" d="M25 120 A85 85 0 1 1 175 120" fill="none" stroke="#0B6CF2" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/>
+          </svg>
+          <div class="g-val" id="r-global"></div>
+          <div class="chip" id="r-nivel"></div>
+          <div class="muted small">Nivel de industrialización</div>
+        </div>
+        <div class="comp" id="r-comp"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Resultado por ámbito</h2>
+      <div id="r-ambitos"></div>
+      <p class="muted small">Niveles: BAJO menos de 25% · MEDIO 25% a 59% · ALTO 60% o más.</p>
+    </div>
+    <div class="card acciones">
+      <h2>Tu informe completo</h2>
+      <p class="muted">Incluye el análisis por ámbito, las comparaciones y recomendaciones para avanzar.</p>
+      <a class="btn big" id="descargar" href="#">⬇ Descargar informe (PDF)</a>
+      <div class="envio">
+        <label for="para">Enviar el informe a (puedes poner varios correos separados por coma):</label>
+        <div class="fila"><input id="para" type="text" inputmode="email" placeholder="nombre@empresa.cl"><button class="btn" id="enviar">✉ Enviar por correo</button></div>
+        <p class="msg" id="envio-msg" role="status"></p>
+      </div>
+      <p class="muted small">Guarda este enlace para volver a tus resultados: <a id="enlace" href="#">enlace a mis resultados</a></p>
+      <button class="btn sec" id="otra">Responder de nuevo</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <img src="img/logos.png" alt="CDT · Compromiso PRO · Cámara Chilena de la Construcción" class="logos">
+  <p>Cualquier duda o consulta: Equipo Productividad CDT-CChC · <a href="mailto:productividad@cchc.cl">productividad@cchc.cl</a></p>
+</footer>
+
+<script src="preguntas.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -20,7 +20,8 @@ export default async (req) => {
   } catch (e) {
     reg.envios.push({ fecha: new Date().toISOString(), para, ok: false, error: String(e.message) });
     await actualizarRespuesta(reg);
-    return json({ error: admin ? String(e.message) : 'No pudimos enviar el correo. Intenta de nuevo en unos minutos o descarga el informe.' }, 502);
+    const sinConfig = /no está configurado/.test(String(e.message));
+    return json({ error: admin || sinConfig ? (sinConfig ? 'El envío por correo aún no está activado en la plataforma. Por ahora descarga el informe con el botón de arriba.' : String(e.message)) : 'No pudimos enviar el correo. Intenta de nuevo en unos minutos o descarga el informe.' }, 502);
   }
 };
 export const config = { path: '/api/enviar' };

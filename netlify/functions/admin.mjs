@@ -12,12 +12,12 @@ export default async (req) => {
   const regs = await todasLasRespuestas();
   if (u.searchParams.get('formato') === 'csv') {
     const cab = ['Fecha', 'Empresa', 'Correo', 'Región', 'Macrozona', 'Personas', 'Tamaño', 'Cargo', 'Experiencia', 'Cobertura', 'Facturación', 'Utilidad', 'Primera vez', 'Socia',
-      ...PREGUNTAS.map(q => q.id + ' ' + q.corto), 'Global', ...AMBITOS.map(a => a.nombre), 'Nivel global', 'Correos enviados', 'ID'];
+      ...PREGUNTAS.map(q => q.id + ' ' + q.corto), 'Global', ...AMBITOS.map(a => a.nombre), 'Nivel global', 'Correos enviados', 'Acepta tratamiento de datos', 'ID'];
     const filas = regs.map(r => {
       const ev = evaluar(r.datos), d = r.datos;
       return [r.fecha, d.empresa, d.email, d.region, ev.macrozona, d.personas, ev.tamano, d.cargo, d.experiencia, d.cobertura, d.facturacion, d.utilidad, d.primera, d.socia,
         ...PREGUNTAS.map(q => q.roles ? (d.respuestas[q.id] || []).join(', ') : d.respuestas[q.id]),
-        ev.global, ...AMBITOS.map(a => ev.amb[a.k]), nivel(ev.global), (r.envios || []).filter(e => e.ok).length, r.id];
+        ev.global, ...AMBITOS.map(a => ev.amb[a.k]), nivel(ev.global), (r.envios || []).filter(e => e.ok).length, r.consentimiento?.acepta ? 'Sí (' + r.consentimiento.fecha + ')' : '', r.id];
     });
     const csv = '﻿' + [cab, ...filas].map(f => f.map(x => {
       const s = typeof x === 'number' ? String(Math.round(x * 1000) / 1000).replace('.', ',') : String(x ?? '');

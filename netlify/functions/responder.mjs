@@ -19,13 +19,14 @@ export default async (req) => {
     datos: v.r,
     resultado: resumen(ev),
     envios: [],
+    consentimiento: { acepta: true, fecha: new Date().toISOString() },
   };
   await guardarRespuesta(reg);
   let correo = null;
   const para = correosValidos(v.r.email);
   if (body.enviarCorreo && para.length) {
     try { await enviarInforme(reg, para, sitioDe(req)); reg.envios.push({ fecha: new Date().toISOString(), para, ok: true }); correo = { ok: true, para }; }
-    catch (e) { reg.envios.push({ fecha: new Date().toISOString(), para, ok: false, error: String(e.message) }); correo = { ok: false, error: 'No pudimos enviar el correo ahora. Puedes descargar el informe o intentarlo de nuevo.' }; }
+    catch (e) { reg.envios.push({ fecha: new Date().toISOString(), para, ok: false, error: String(e.message) }); correo = { ok: false, error: /no está configurado/.test(String(e.message)) ? 'El envío por correo aún no está activado. Por ahora descarga tu informe con el botón de abajo.' : 'No pudimos enviar el correo ahora. Puedes descargar el informe o intentarlo de nuevo.' }; }
     const { actualizarRespuesta } = await import('../../lib/db.mjs'); await actualizarRespuesta(reg);
   }
   return json({ id: reg.id, t: reg.token, empresa: v.r.empresa, email: v.r.email, resultado: resultadoPantalla(ev, comp), correo });

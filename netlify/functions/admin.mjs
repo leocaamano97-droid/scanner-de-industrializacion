@@ -29,7 +29,7 @@ export default async (req) => {
     correo: correoConfigurado(),
     respuestas: regs.map(r => {
       const ev = evaluar(r.datos);
-      return { id: r.id, t: r.token, fecha: r.fecha, empresa: r.datos.empresa, email: r.datos.email, region: r.datos.region, tamano: ev.tamano,
+      return { id: r.id, t: r.token, fecha: r.fecha, origen: r.origen || 'Plataforma', empresa: r.datos.empresa, email: r.datos.email, region: r.datos.region, tamano: ev.tamano,
         global: Math.round(ev.global * 100), nivel: nivel(ev.global), envios: (r.envios || []).filter(e => e.ok).length,
         ultimoError: (r.envios || []).filter(e => !e.ok).slice(-1)[0]?.error || '' };
     }),

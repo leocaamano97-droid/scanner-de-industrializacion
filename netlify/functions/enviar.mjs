@@ -13,7 +13,7 @@ export default async (req) => {
   if (!admin && (reg.envios || []).filter(e => e.ok).length >= 10) return json({ error: 'Se alcanzó el máximo de envíos para este informe' }, 429);
   reg.envios = reg.envios || [];
   try {
-    await enviarInforme(reg, para, sitioDe(req));
+    await enviarInforme(reg, para, sitioDe(req), { atrasado: !!(admin && b.atrasado) });
     reg.envios.push({ fecha: new Date().toISOString(), para, ok: true, admin: !!admin });
     await actualizarRespuesta(reg);
     return json({ ok: true, para });

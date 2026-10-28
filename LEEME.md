@@ -65,6 +65,10 @@ Reemplaza el enlace del formulario de Google por la nueva dirección en el QR, l
 
 ---
 
+## Respuestas del formulario de Google anterior
+1. En `/admin.html`, abre **"Importar respuestas del formulario de Google anterior"**, elige `respuestas-formulario-google.json` y haz clic en **Importar**. No se duplican si lo repites.
+2. Para enviar los informes que no llegaron, abre **"Enviar informes pendientes"**, elige la fecha desde la cual enviar y haz clic en **Enviar pendientes**. Puedes incluir una nota de disculpa por la demora.
+
 ## Uso diario
 - **Ver y descargar respuestas:** `/admin.html` → "Descargar todas las respuestas". Se abre en Excel.
 - **Reenviar un informe:** en `/admin.html`, botón **Enviar** en la fila de la empresa.

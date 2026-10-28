@@ -9,6 +9,8 @@
     { k: 'RO', nombre: 'Roles', icon: 'icon_ro', intro: 'Responsabilidades y competencias de los equipos para liderar y ejecutar proyectos industrializados.' },
     { k: 'IN', nombre: 'Integración temprana y colaboración', icon: 'icon_in', intro: 'Coordinación y trabajo conjunto entre los distintos actores del proyecto.' }
   ];
+  // Texto legal de tratamiento de datos personales (editar aquí si cambia)
+  var TEXTO_LEGAL = 'Los datos personales que usted proporcione durante la actividad serán recabado y utilizado exclusivamente con fines relacionados a la organización de actividades promovidas por la CChC. Le recordamos sus derechos a acceder, rectificar, cancelar, oponerse, revocar el tratamiento de sus datos personales en cualquier momento, contactando directamente CChC. Todo en conformidad con la legislación vigente en Chile sobre protección de datos personales (Ley N° 19.496 sobre Protección de la Vida Privada y la Ley 21.719).';
   var CLAVE = 'scanner-ind-borrador';
   var paso = 0, PASOS = [], datos = { respuestas: {} }, actual = null;
 
@@ -67,7 +69,9 @@
       '<div class="campo" data-campo="email"><label for="f-email">Correo para enviar el informe <span class="ayuda">(opcional; puedes poner varios separados por coma)</span></label>' +
       '<input id="f-email" name="email" type="text" inputmode="email" autocomplete="email" placeholder="nombre@empresa.cl"></div>' +
       '<label class="check"><input type="checkbox" id="f-enviar" checked> Enviarme el informe por correo al terminar</label>' +
-      '<p class="muted small">Tus respuestas se guardan de forma confidencial y se usan de forma agregada para calcular los promedios de comparación del sector.</p></div>';
+      '<p class="muted small">Tus respuestas se guardan de forma confidencial y se usan de forma agregada para calcular los promedios de comparación del sector.</p>' +
+      '<div class="legal" data-campo="acepto"><p>' + esc(TEXTO_LEGAL) + '</p>' +
+      '<label class="check"><input type="checkbox" id="f-acepto"> <span><b>Acepto</b> el tratamiento de mis datos personales en los términos indicados.</span></label></div></div>';
     PASOS.push({ tipo: 'final' });
     $('#pasos').innerHTML = html;
     rellenar();
@@ -100,11 +104,13 @@
     document.querySelectorAll('.falta').forEach(function (x) { x.classList.remove('falta'); });
     if (p.tipo === 'empresa') {
       p.req.forEach(function (k) { if (!String(datos[k] || '').trim()) { faltan.push(k); var c = document.querySelector('[data-campo="' + k + '"]'); if (c) c.classList.add('falta'); } });
+    } else if (p.tipo === 'final') {
+      if (!$('#f-acepto').checked) { faltan.push('acepto'); document.querySelector('[data-campo="acepto"]').classList.add('falta'); }
     } else if (p.tipo === 'amb') {
       p.preguntas.forEach(function (q) { if (!q.roles && !datos.respuestas[q.id]) { faltan.push(q.id); document.querySelector('[data-preg="' + q.id + '"]').classList.add('falta'); } });
     }
     if (faltan.length) {
-      $('#error').textContent = 'Faltan ' + faltan.length + ' respuesta(s) marcadas en rojo.';
+      $('#error').textContent = faltan.length === 1 && faltan[0] === 'acepto' ? 'Para continuar debes aceptar el tratamiento de datos personales.' : 'Faltan ' + faltan.length + ' respuesta(s) marcadas en rojo.';
       var primero = document.querySelector('.falta'); if (primero) primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
     }
@@ -128,6 +134,7 @@
     var body = JSON.parse(JSON.stringify(datos));
     body.enviarCorreo = $('#f-enviar').checked && !!String(datos.email || '').trim();
     body.web = $('#web').value;
+    body.aceptaDatos = $('#f-acepto').checked;
     F.preguntas.forEach(function (q) { if (q.roles && !body.respuestas[q.id]) body.respuestas[q.id] = []; });
     fetch('/api/responder', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error'); return j; }); })

@@ -85,3 +85,8 @@ footer a{color:var(--azul)}
   .card{padding:18px}
   .flag{width:34px;height:34px}
 }
+
+.legal{background:var(--fondo);border:1px solid var(--borde);border-radius:10px;padding:12px 14px;margin-top:14px}
+.legal p{font-size:12px;color:var(--mut);margin:0 0 8px;line-height:1.5}
+.legal .check{margin:0;font-size:13.5px}
+.legal.falta{border-color:var(--rojo);background:#FFF5F5}

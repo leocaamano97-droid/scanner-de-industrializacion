@@ -17,6 +17,7 @@
   .barra-adm input{max-width:260px}
   .mini{padding:5px 10px;font-size:12.5px;border-radius:6px}
   .aviso{background:#FFF4E5;border:1px solid #F5C77E;border-radius:8px;padding:10px 12px;font-size:13.5px;margin-bottom:12px}
+  .bloque{border:1px solid var(--borde);border-radius:10px;padding:10px 14px;margin-bottom:12px}.bloque summary{cursor:pointer}.bloque p{margin:8px 0}
   .kpis{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}.kpis div{background:var(--fondo);border-radius:8px;padding:8px 14px}.kpis b{font-size:20px;color:var(--navy);display:block}
 </style>
 </head>
@@ -36,7 +37,23 @@
       <a class="btn sec mini" id="csv" href="#">⬇ Descargar todas las respuestas (Excel/CSV)</a>
       <button class="btn sec mini" id="recargar">Actualizar</button>
     </div>
-    <div class="tabla"><table class="t"><thead><tr><th>Fecha</th><th>Empresa</th><th>Correo</th><th>Región</th><th>Tamaño</th><th>Global</th><th>Correos enviados</th><th>Acciones</th></tr></thead><tbody id="filas"></tbody></table></div>
+    <details class="bloque" id="b-importar">
+      <summary><b>Importar respuestas del formulario de Google anterior</b></summary>
+      <p class="muted small">Sube el archivo <code>respuestas-formulario-google.json</code>. Las respuestas que ya estén importadas no se duplican.</p>
+      <div class="fila"><input type="file" id="archivo" accept=".json,application/json"><button class="btn mini" id="importar">Importar</button></div>
+      <p class="msg" id="imsg"></p>
+    </details>
+    <details class="bloque" id="b-masivo">
+      <summary><b>Enviar informes pendientes</b> (a quienes aún no les ha llegado)</summary>
+      <p class="muted small">Envía el informe al correo registrado de cada respuesta sin envíos desde la fecha indicada.</p>
+      <div class="fila" style="align-items:center;flex-wrap:wrap">
+        <label class="small" style="margin:0">Desde</label><input type="date" id="desde" value="2026-10-01" style="max-width:170px">
+        <label class="check small" style="margin:0"><input type="checkbox" id="disculpa" checked> Incluir nota de disculpa por la demora</label>
+        <button class="btn mini" id="masivo">Enviar pendientes</button>
+      </div>
+      <p class="msg" id="mmsg"></p>
+    </details>
+    <div class="tabla"><table class="t"><thead><tr><th>Fecha</th><th>Origen</th><th>Empresa</th><th>Correo</th><th>Región</th><th>Tamaño</th><th>Global</th><th>Correos enviados</th><th>Acciones</th></tr></thead><tbody id="filas"></tbody></table></div>
   </div>
 </main>
 <script>
@@ -59,10 +76,10 @@
   function pintar() {
     var f = $('#filtro').value.toLowerCase();
     $('#filas').innerHTML = datos.filter(function (d) { return !f || (d.empresa + ' ' + d.email).toLowerCase().indexOf(f) >= 0; }).map(function (d) {
-      return '<tr><td>' + new Date(d.fecha).toLocaleString('es-CL') + '</td><td>' + esc(d.empresa) + '</td><td>' + esc(d.email) + '</td><td>' + esc(d.region) + '</td><td>' + esc(d.tamano) +
+      return '<tr><td>' + new Date(d.fecha).toLocaleString('es-CL') + '</td><td class="small">' + esc(d.origen) + '</td><td>' + esc(d.empresa) + '</td><td>' + esc(d.email) + '</td><td>' + esc(d.region) + '</td><td>' + esc(d.tamano) +
         '</td><td><b>' + d.global + '%</b> ' + d.nivel + '</td><td>' + d.envios + (d.ultimoError ? '<br><span class="down small" title="' + esc(d.ultimoError) + '">error en último intento</span>' : '') +
         '</td><td><a class="btn sec mini" href="/api/informe?id=' + d.id + '&admin=' + encodeURIComponent(clave) + '">PDF</a> <button class="btn mini" data-id="' + d.id + '" data-email="' + esc(d.email) + '">Enviar</button></td></tr>';
-    }).join('') || '<tr><td colspan="8" class="muted">Sin respuestas todavía.</td></tr>';
+    }).join('') || '<tr><td colspan="9" class="muted">Sin respuestas todavía.</td></tr>';
   }
   $('#filas').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-id]'); if (!b) return;
@@ -72,6 +89,36 @@
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
       .then(function () { alert('Informe enviado.'); cargar(); }).catch(function (e) { alert('No se pudo enviar: ' + e.message); b.disabled = false; b.textContent = 'Enviar'; });
   });
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-clave': clave }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error'); return j; }); });
+  }
+  $('#importar').onclick = function () {
+    var f = $('#archivo').files[0], m = $('#imsg');
+    if (!f) { m.className = 'msg err'; m.textContent = 'Elige el archivo .json'; return; }
+    f.text().then(function (t) {
+      var regs = JSON.parse(t).registros || [], tot = 0, i = 0;
+      m.className = 'msg'; m.textContent = 'Importando…';
+      (function lote() {
+        if (i >= regs.length) { m.className = 'msg ok'; m.textContent = '✓ Importación lista: ' + tot + ' respuesta(s) nuevas de ' + regs.length + '.'; cargar(); return; }
+        post('/api/importar', { registros: regs.slice(i, i + 20) }).then(function (j) { tot += j.agregados; i += 20; m.textContent = 'Importando… ' + Math.min(i, regs.length) + ' de ' + regs.length; lote(); })
+          .catch(function (e) { m.className = 'msg err'; m.textContent = e.message; });
+      })();
+    }).catch(function () { m.className = 'msg err'; m.textContent = 'El archivo no es válido.'; });
+  };
+  $('#masivo').onclick = function () {
+    var desde = $('#desde').value, m = $('#mmsg');
+    var lista = datos.filter(function (d) { return d.envios === 0 && d.email && (!desde || d.fecha.slice(0, 10) >= desde); });
+    if (!lista.length) { m.className = 'msg'; m.textContent = 'No hay informes pendientes desde esa fecha.'; return; }
+    if (!confirm('Se enviará el informe a ' + lista.length + ' persona(s):\n\n' + lista.slice(0, 20).map(function (d) { return '• ' + d.empresa + ' (' + d.email + ')'; }).join('\n') + (lista.length > 20 ? '\n…' : '') + '\n\n¿Continuar?')) return;
+    var ok = 0, err = 0, i = 0, b = $('#masivo'); b.disabled = true;
+    (function siguiente() {
+      if (i >= lista.length) { b.disabled = false; m.className = 'msg ' + (err ? 'err' : 'ok'); m.textContent = 'Listo: ' + ok + ' enviado(s)' + (err ? ', ' + err + ' con error (revisa la columna “Correos enviados”).' : '.'); cargar(); return; }
+      var d = lista[i++]; m.className = 'msg'; m.textContent = 'Enviando ' + i + ' de ' + lista.length + ': ' + d.empresa + '…';
+      post('/api/enviar', { id: d.id, admin: clave, para: d.email, atrasado: $('#disculpa').checked })
+        .then(function () { ok++; }).catch(function () { err++; }).then(function () { setTimeout(siguiente, 1200); });
+    })();
+  };
   $('#entrar').onclick = function () { clave = $('#clave').value; cargar(); };
   $('#clave').onkeydown = function (e) { if (e.key === 'Enter') $('#entrar').click(); };
   $('#filtro').oninput = pintar; $('#recargar').onclick = cargar;
